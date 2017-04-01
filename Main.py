@@ -1,6 +1,6 @@
 import string
-from .MarkovChain import MarkovChain
-from .MarkovModel import update_map
+from MarkovChain import MarkovChain
+from MarkovModel import update_map
 """The main driver for creating the markov chain and the sentences"""
 
 #enter your books into this array
