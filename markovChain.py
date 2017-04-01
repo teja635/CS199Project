@@ -16,9 +16,9 @@ class MarkovChain(object):
         self._stateDict =  stateDict
         self._state = startState
 
-    def printState(self):
+    def getState(self):
         """Prints the current state"""
-        print(self._state)
+        return self._state
 
     def nextState(self):
         """Randomly walks to the next state by the assigned probabilites in 
