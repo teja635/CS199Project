@@ -17,7 +17,7 @@ class MarkovChain(object):
         self._state = startState
 
     def getState(self):
-        """Prints the current state"""
+        """Returns the current state"""
         return self._state
 
     def nextState(self):
