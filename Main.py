@@ -1,6 +1,12 @@
+import nltk, re, pprint
+from nltk import word_tokenize
+from pyspark import SparkContext, SparkConf
+conf = SparkConf().setAppName("Markov Model")
+sc = SparkContext(conf=conf)
+from graphframes import *
 import string
 from MarkovChain import MarkovChain
-from MarkovModel import update_map
+import MarkovModel
 """The main driver for creating the markov chain and the sentences"""
 
 #enter your books into this array
@@ -11,11 +17,16 @@ numSentences = 5
 
 #enter word you would like to start with
 startWord = 'A'
+markovModel = MarkovModel(bookArray)
+edgeDF = markovModel.createEdgeDF()
+verticiesDF = markovModel.getVerticiesDF()
+graph = GraphFrame(verticiesDF, edgeDF)
 
-stateDict = update_map(bookAarray)
-
-if startWord not in stateDict:
+if startWord not in verticiesDF.collect.id:
     print("The word you entered does not appear in any of the texts!")
+
+######BENEATH THIS STILL NEEDS TO BE FIXED AND CHANGED TO DATAFRAMES
+######ALSO MARKOV CHAIN OBJECT 
 else:
     markovChain = MarkovChain(stateDict, startState)
     while numSentences > 0:

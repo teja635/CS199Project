@@ -8,7 +8,7 @@ class CreateDict(object):
     def __init__(self, bookArray):
         self.words = None
 
-    def createEdgeDF():
+    def createEdgeDF(self):
         """Create and returns the edge dataframe"""
 
         self.updateText()
