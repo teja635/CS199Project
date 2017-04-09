@@ -6,29 +6,57 @@ sc = SparkContext(conf=conf)
 
 class CreateDict(object): 
     def __init__(self, bookArray):
-        self._bookArray = bookArray
+        self.words = None
 
-    def createDict():
-        for i in _bookArray:
-            updateText(i)
-        createDict()
-        normalizeDict()
-        return self._bigramCount.toDF()
+    def createEdgeDF():
+        """Create and returns the edge dataframe"""
 
-    def updateText(newBook):
-        with open(newBook,"r") as book:
-            self._text += " " + book.read().replace("\n"," ").replace("\r","")
+        self.updateText()
+        self.createDict()
+        self.normalizeDict()
 
-    def createDict(self):
+        #Puts the rdd into the format the dataframe needs
+        self._bigramCount = self._bigramCount.map(lambda x: (x[0][0], x[0][1], x[1]))
+        return self._bigramCount.toDF(["src","dst","prob"])
+
+    def getVerticiesDF(self):
+        """Returns the vertices of the graph (the distinct words in the text)"""
+
+        if self.words != None:
+            return self.words.distinct().map(lambda x: (x,1)).toDF(["id","value"])
+        else:  #if words has not been created (just in case) create it
+            lines = sc.parallelize(_text)
+            lines = lines.map(lambda x: x.lower())
+            self.words = lines.map(lambda x: x.split())
+            return self.words.distinct().map(lambda x: (x,1)).toDF(["id","value"])
+
+
+    def updateText(self, newBook):
+        """Updates the text of all the books in the proper format."""
+
+        self._text = ""
+
+        #For each book add them to the array of text
+        for newBook in self._bookArray: 
+            with open(newBook,"r") as book:
+                self._text += " " + book.read().replace("\n"," ").replace("\r","")
+        self._text = self._text.split(".") #Splits text by sentence
+        for i in range(len(self._text)):
+            self._text[i] += " ." #The period is still important, so add it back
+
+
+    def createRDD(self):
+        """Creates the rdd of the edges and their probablity"""
+
         lines = sc.parallelize(_text)
         lines = lines.map(lambda x: x.lower())
-        words = lines.map(lambda x: x.split())
+        self.words = lines.map(lambda x: x.split())
         #tokens = lines.flatMap(lambda x: word_tokenize(x)) 
-        bigrams = words.flatMap(lambda x: list((x[i],x[i + 1]) for i in range(len(x) - 1)))
+        bigrams = self.words.flatMap(lambda x: list((x[i],x[i + 1]) for i in range(len(x) - 1)))
         self._bigramCount = bigrams.map(lambda x: (x,1)).reduceByKey(lambda x,y: x+y)
 
         
-"""
+        """
         tok = tokens.collect()
         for i in range(len(tok)-1):
             w1 = tok[i]
@@ -40,10 +68,11 @@ class CreateDict(object):
                     self._word_map[w1][w2] = 1
             else:
                 self._word_map[w1] = {w2: 1}
-"""
+        """
 
-    def normalizeDict():
-        # normalization of the data
+    def normalizeDict(self):
+        """Normalizes the edge probabilites"""
+
         total = self._bigramCount.map(lambda x: x[1]).reduce(lambda x,y: x+y)
         self._bigramCount = self._bigramCount.map(lambda x: (x[0],x[1]/total))
         """
@@ -52,5 +81,5 @@ class CreateDict(object):
             if(s != 0):
                 for k in self._word_map[i]:
                     self._word_map[i][k] /= s
-"""
+        """
 
