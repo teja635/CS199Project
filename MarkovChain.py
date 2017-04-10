@@ -32,3 +32,17 @@ class MarkovChain(object):
         self._state = np.random.choice(a=dests,
                 p=probabilites)
 
+    def possibleStates(self, word, num=5):
+        """returning the most probable future words for a given word"""
+        p = sorted([(i.dst, i.prob) for i in self._graphFrame.edges[self._graphFrame.edges['src'] == word].collect()], key=lambda x:x[1], reverse=True)
+        return p[0:min(num, len(p))]
+
+    def generateTree(self, seed, depth=3):
+        if depth == 0:
+            return
+        arr = []
+        arr.append(seed)
+        arr.append(possibleStates(3, seed))
+        for i in range(len(arr[1])):
+            arr[1][i] = (arr[1][i], generateTree(arr[1][i], depth-1))
+        return arr

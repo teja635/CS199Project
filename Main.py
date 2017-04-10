@@ -42,3 +42,4 @@ else:
         markovChain.nextState()
 
 print(sentences)
+print(markovModel.sortedLikeliness("the"))

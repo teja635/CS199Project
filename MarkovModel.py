@@ -71,4 +71,6 @@ class DFMaker(object):
         for i in total:
             totalDict[i[0]] = i[1]
         self._bigramCount = self._bigramCount.map(lambda x: (x[0],x[1]/totalDict[x[0][0]]))
-
+    
+    def sortedLikeliness(self, word):
+        return _bigramCount.take(10)
