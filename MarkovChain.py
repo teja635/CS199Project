@@ -10,11 +10,13 @@ class MarkovChain(object):
     }
     """
 
-    def __init__(self, stateDict, startState):
+    def __init__(self, graphFrame, startState):
         """Constructor for the class. stateDict is the dictionary and
         start state is what state to start at"""
-        self._stateDict =  stateDict
+        self._graphFrame =  graphFrame
+        print(startState)
         self._state = startState
+        print(self._state)
 
     def getState(self):
         """Returns the current state"""
@@ -23,7 +25,10 @@ class MarkovChain(object):
     def nextState(self):
         """Randomly walks to the next state by the assigned probabilites in 
         the dictionary"""
-        probabilites = list(self._stateDict[self._state])
-        self._state = np.random.choice(a=probabilites[0],
-                p=probabilites[1])
+        probabilites = [i.prob for i in self._graphFrame.edges[self._graphFrame.edges['src'] == self._state].select("prob").collect()]
+        dests = [i.dst for i in self._graphFrame.edges[self._graphFrame.edges['src'] == self._state].select("dst").collect()]
+        if dests == []:
+            return "."
+        self._state = np.random.choice(a=dests,
+                p=probabilites)
 

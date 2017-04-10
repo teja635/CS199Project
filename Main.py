@@ -1,40 +1,44 @@
-import nltk, re, pprint
+import nltk, re, pprint, os
 from nltk import word_tokenize
 from pyspark import SparkContext, SparkConf
+from pyspark.sql import SparkSession
+from graphframes import *
 conf = SparkConf().setAppName("Markov Model")
 sc = SparkContext(conf=conf)
-from graphframes import *
+#sc = SparkContext(conf = conf, pyFiles=[os.path.join(os.path.abspath(os.path.dirname(__file__)), 'MarkovModel.py'), os.path.join(os.path.abspath(os.path.dirname(__file__)), 'MarkovChain.py')])
+spark = SparkSession(sc)
 import string
 from MarkovChain import MarkovChain
-import MarkovModel
+from MarkovModel import DFMaker
 """The main driver for creating the markov chain and the sentences"""
 
 #enter your books into this array
-bookArray = []
+bookArray = ["AChristmasCarol.txt","DavidCopperField.txt","OliverTwist.txt",
+"GreatEspectations.txt","TaleOfTwoCities.txt"]
+for i in range(len(bookArray)):
+    bookArray[i] = "/home/team2/Project/" + bookArray[i]
 
 #enter number of sentences here
-numSentences = 5
+numSentences = 12
 
 #enter word you would like to start with
-startWord = 'A'
-markovModel = MarkovModel(bookArray)
-edgeDF = markovModel.createEdgeDF()
-verticiesDF = markovModel.getVerticiesDF()
-graph = GraphFrame(verticiesDF, edgeDF)
+startWord = 'a'
 
-if startWord not in verticiesDF.collect.id:
+markovModel = DFMaker(bookArray)
+edgeDF = markovModel.createEdgeDF(sc)
+verticiesDF = markovModel.getVerticiesDF(sc)
+graphFrame = GraphFrame(verticiesDF, edgeDF)
+
+sentences = ""
+if verticiesDF[verticiesDF["id"] == startWord].collect() == []:
     print("The word you entered does not appear in any of the texts!")
-
-######BENEATH THIS STILL NEEDS TO BE FIXED AND CHANGED TO DATAFRAMES
-######ALSO MARKOV CHAIN OBJECT 
 else:
-    markovChain = MarkovChain(stateDict, startState)
+    markovChain = MarkovChain(graphFrame, startWord)
     while numSentences > 0:
         currentState = markovChain.getState()
         if currentState in string.punctuation:
             numSentences-=1
-        print(markovChain.getState())
+        sentences+= markovChain.getState() + " "
         markovChain.nextState()
 
-
-
+print(sentences)
